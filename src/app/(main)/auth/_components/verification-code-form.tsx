@@ -10,7 +10,6 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { setAuthTokens } from "@/lib/auth";
 import { debugApiCall } from "@/lib/api-debug";
 
 const FormSchema = z.object({
@@ -27,7 +26,7 @@ interface VerificationCodeFormProps {
   onBack: () => void;
 }
 
-export function VerificationCodeForm({ username, email, password, onBack }: VerificationCodeFormProps) {
+export function VerificationCodeForm({ username, email, password: _password, onBack }: VerificationCodeFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResending, setIsResending] = useState(false);
@@ -74,38 +73,24 @@ export function VerificationCodeForm({ username, email, password, onBack }: Veri
         }),
       });
 
-      if (verifyDebug.response?.status === 200) {
-        toast.success("邮箱验证成功！正在为您登录...");
+      const statusCode = verifyDebug.response?.status ?? 0;
+      if (verifyDebug.response && statusCode >= 200 && statusCode < 300) {
+        // 兼容响应壳：{ success, data: { message, verified } }
+        const responseData = verifyDebug.response.data;
+        const payload = responseData?.data ?? responseData;
+        const verified = payload?.verified === true;
+        const success = responseData?.success === true || verified;
 
-        // 验证成功后自动登录
-        try {
-          const loginDebug = await debugApiCall("/api/v1/auth/login", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              username,
-              password,
-            }),
-          });
-
-          if (loginDebug.response?.status === 200) {
-            // 后端使用TransformInterceptor包装响应，实际数据在data字段中
-            const loginData = loginDebug.response.data.data || loginDebug.response.data;
-            // 存储认证信息
-            setAuthTokens(loginData);
-            toast.success("注册完成！欢迎使用！");
-            router.push("/dashboard");
-          } else {
-            // 验证成功但登录失败，引导用户手动登录
-            toast.success("邮箱验证成功！请使用您的账号密码登录。");
-            router.push("/auth/v1/login");
-          }
-        } catch (loginError) {
-          console.error("Auto login failed:", loginError);
-          toast.success("邮箱验证成功！请使用您的账号密码登录。");
+        if (success) {
+          const msg = payload?.message || "邮箱验证成功！";
+          toast.success(msg);
+          // 成功后跳转至登录页（不自动登录）
           router.push("/auth/v1/login");
+          return;
+        } else {
+          const msg = payload?.message || "邮箱验证失败，请稍后重试。";
+          toast.error(msg);
+          form.setValue("verificationCode", "");
         }
       } else {
         // 处理验证错误
@@ -213,7 +198,7 @@ export function VerificationCodeForm({ username, email, password, onBack }: Veri
             />
 
             <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "验证中..." : "验证并完成注册"}
+              {isSubmitting ? "验证中..." : "验证并前往登录"}
             </Button>
           </fieldset>
         </form>
