@@ -169,6 +169,16 @@ import { Package } from 'lucide-react';
 - Middleware not working: ensure `src/middleware.ts` exists and `config.matcher` matches your routes
 - Port mismatch: template scripts use port `3456` (see `package.json` `dev/start`)
 
+## Backend & Deploy
+
+- Backend template: `aws-cdk-nestjs-template` (NestJS + AWS CDK). Repo: https://github.com/lfhwnqe/aws-cdk-nestjs-template
+  - Matches this frontend in auth (JWT/refresh), path proxying (`/api/*`), and env var conventions (`API_BASE_URL`).
+- Deployment recommendation (AWS Amplify for frontend): use AWS Amplify Hosting for this Next.js app and deploy the backend with the above template to AWS (API Gateway + Lambda or ECS/Fargate).
+  - In Amplify console, set `API_BASE_URL` to your backend API Gateway domain (or custom domain).
+  - Keep frontend and backend in the same AWS Account/Region to minimize latency and simplify IAM.
+  - Amplify recognizes Next.js; if needed, use `npm ci && npm run build` to build.
+  - Proxy note: this template's `rewrites()` forwards non-Next `/api/*` requests to `API_BASE_URL`.
+
 ## References
 
 - Quick Start: `docs/快速开始.md`
