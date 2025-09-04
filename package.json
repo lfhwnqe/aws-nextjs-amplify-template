@@ -1,7 +1,11 @@
 {
-  "name": "studio-admin",
+  "name": "aws-nextjs-amplify-template",
   "version": "2.0.0",
   "private": true,
+  "author": {
+    "name": "Linuo",
+    "email": "lfhwnqea@gmail.com"
+  },
   "scripts": {
     "dev": "next dev -p 3456",
     "build": "next build",

@@ -1,145 +1,177 @@
-# Next.js Admin Template with TypeScript & Shadcn UI
+# Template Developer Guide
 
-Includes multiple dashboards, authentication layouts, customizable theme presets, and more.
+[Read this in Simplified Chinese → docs/开发指南.md](docs/开发指南.md)
 
-<img src="https://github.com/arhamkhnz/next-shadcn-admin-dashboard/blob/main/media/dashboard.png?version=4" alt="Dashboard Screenshot">
+This project is a modern admin template built with Next.js 15, TypeScript, Tailwind CSS v4, and Shadcn UI. It follows a colocation architecture and ships with authentication, themes, navigation, data-table utilities, and middleware so you can develop features quickly.
 
-The idea behind this dashboard aims to offer an alternative to typical admin templates. Most I came across, paid or free, felt cluttered, outdated, or too rigid in design.
+> Update app identity in `src/config/app-config.ts` (`APP_CONFIG.name`, `meta.title`, `meta.description`).
 
-I’ve taken design inspiration from various sources. Feel free to open an issue or reach out for credits.
+## Development Environment
 
-> **View demo:** [studio admin](https://next-shadcn-admin-dashboard.vercel.app)
+- Node.js: recommended `>= 22`; package manager: `npm` or `yarn`
+- Dev server: `npm run dev` at `http://localhost:3456`
+- Env vars: `API_BASE_URL` (global backend proxy target)
+  - Examples: see `.env.development` (pre-filled API Gateway) and `.env.production`
+- Scripts:
+  - `npm run dev`: start dev server (port `3456`)
+  - `npm run build`: build artifacts
+  - `npm run start`: production start (port `3456`)
+  - `npm run lint`: lint check (ESLint)
+  - `npm run typecheck`: TypeScript type check
+  - `npm run format` / `npm run format:check`: Prettier format
+  - `npm run generate:presets`: generate theme presets (see “Theme & Preferences”)
 
-> [!TIP]
-> I’m also working on Nuxt.js, Svelte, and React (Vite + TanStack Router) versions of this dashboard. They’ll be live soon.
+## Project Structure (Template View)
 
-## Features
+- `src/app`: App Router routes and pages
+  - `(external)`: external group (e.g., root route redirect)
+  - `(main)/dashboard/*`: dashboard features (recommended place for new features)
+  - `layout.tsx`: root layout wiring theme and preferences
+- `src/components`: shared components
+  - `ui/`: Shadcn UI primitives
+  - `data-table/`: table ecosystem (columns, pagination, drag, etc.)
+  - `layouts/`: layout and page-level fragments
+- `src/navigation/sidebar`: sidebar menu and role filtering (`sidebar-items.ts`)
+- `src/lib`: utilities (`auth.ts`, `utils.ts`, `theme-utils.ts`, etc.)
+- `src/stores`: Zustand stores (`auth/`, `preferences/`)
+- `src/server/server-actions.ts`: server actions (cookie-based preferences)
+- `src/middleware.ts` + `src/middleware/auth-middleware.ts`: route protection (see “Auth & Middleware”)
+- `src/styles/presets`: theme CSS presets; `src/scripts/generate-theme-presets.ts` generates metadata/types
+- `src/types/preferences/theme.ts`: theme modes and preset types
 
-- Built with Next.js 15, TypeScript, and Shadcn UI
-- Responsive and mobile-friendly design
-- Customizable theme presets (light/dark modes with color schemes like Tangerine, Brutalist, and more)
-- Multiple layout options (collapsible sidebar, content width variations)
-- Authentication layouts and screens
-- Dashboard screens for analytics, reports, and overview
-- Prebuilt dashboard screens and reusable UI components  
-- Includes 5 out of 15 planned screens
-- RBAC (Role-Based Access Control) with config-driven UI and multi-tenant support *(planned)*
+## Routing & Pages
 
-> [!NOTE]
-> The default version of the dashboard uses the **shadcn neutral** theme.  
-> It also supports multiple color themes inspired by [Tweakcn](https://tweakcn.com), including:
->
-> - Tangerine  
-> - Neo Brutalism  
-> - Soft Pop  
->
-> You can add more presets by following the same structure as the existing ones.
+- App Router + Route Groups:
+  - `src/app/(external)/page.tsx`: redirect root to `/dashboard`
+  - `src/app/(main)/dashboard/layout.tsx`: dashboard layout and sidebar
+  - `src/app/(main)/dashboard/[...not-found]/page.tsx`: not-found fallback
+- Redirects: `next.config.mjs` redirects `/dashboard` to `/dashboard/default`
 
-> Looking for the **Next.js 14 + Tailwind CSS v3** version?
-> Check out the [`archive/next14-tailwindv3`](https://github.com/arhamkhnz/next-shadcn-admin-dashboard/tree/archive/next14-tailwindv3) branch.  
-> It uses a different color theme and isn’t actively maintained, but I’m trying to keep it updated with the latest changes and screens.
+## Auth & Middleware
 
-## Tech Stack
+- Token storage:
+  - Client: `localStorage` (`accessToken`, `refreshToken`, `user`)
+  - Cookie: `auth-token` (checked by middleware)
+- Key APIs (`src/lib/auth.ts`):
+  - `setAuthTokens(tokens)`: write to `localStorage` and `auth-token` cookie, and sync to global auth store
+  - `logout()`: clear auth and redirect to `/auth/v1/login`
+- Middleware (`src/middleware.ts` + `src/middleware/auth-middleware.ts`):
+  - Protected paths: `/dashboard/:path*`
+  - Unauthenticated access → redirect to `/auth/v1/login`
+  - Accessing login while authenticated → redirect to `/dashboard`
+  - Scope changes: edit `export const config.matcher` or the middleware logic
 
-- **Framework**: Next.js 15 (App Router), TypeScript, Tailwind CSS v4  
-- **Components**: Shadcn UI  
-- **Validation**: Zod  
-- **Forms & State**: React Hook Form, Zustand  
-- **Data Table**: TanStack Table  
-- **Tooling**: ESLint, Prettier, Husky
+## API Access & Backend Proxy
 
-## Screens
-
-✅ Available  
-🚧 Coming Soon
-
-### Dashboards
-- ✅ Default
-- ✅ CRM
-- ✅ Finance
-- 🚧 Analytics
-- 🚧 eCommerce
-- 🚧 Academy
-- 🚧 Logistics
-
-### Pages
-- 🚧 Email
-- 🚧 Chat
-- 🚧 Calendar
-- 🚧 Kanban
-- 🚧 Invoice
-- 🚧 Users
-- 🚧 Roles
-- ✅ Authentication (4 screens)
-
-## Colocation File System Architecture
-
-Pages, components, and logic are grouped by feature. Each route folder contains everything it needs. Shared UI, hooks, and config live at the top level, keeping the codebase modular and scalable as the app grows.
-
-Check out [this repo](https://github.com/arhamkhnz/next-colocation-template) for the full file structure and examples.
-
-## Getting Started
-
-You can run this project locally, or deploy it instantly with Vercel.
-
-### Prerequisites
-
-- Node.js 22 or higher is required. Use `nvm`/`asdf` to switch versions easily.
-  - With `nvm`: `nvm install` then `nvm use` (project provides `.nvmrc`).
-  - With `asdf`: `asdf install nodejs latest:22` (project provides `.node-version`).
-
-### Deploy with Vercel
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Farhamkhnz%2Fnext-shadcn-admin-dashboard)
-
-_Clone and deploy your own copy of this project in one click._
-
-### Run locally
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/arhamkhnz/next-shadcn-admin-dashboard.git
-   ```
-   
-2. **Install dependencies**
-   ```bash
-    npm install
-   ```
-
-3. **Start the development server**
-   ```bash
-   npm run dev
-   ```
-
-### 工具函数：fetchWithAuth
-
-项目提供 `src/utils/fetchWithAuth.ts`，封装了带鉴权和自动刷新 token 的 `fetch`。
+- Global proxy: `next.config.mjs` `rewrites()` proxies any non-Next-captured routes to `API_BASE_URL`
+  - Example: `fetch('/api/users')` → `${API_BASE_URL}/api/users`
+- Recommended wrapper: `src/utils/fetch-with-auth.ts`
+  - Adds `Authorization: Bearer <accessToken>` automatically
+  - On `401`, tries refresh (`/api/auth/refresh`); on failure clears caches and redirects to login
+  - `proxyParams`: pass-through `targetPath` and real `method` when your backend expects a proxy envelope
+- Usage example:
 
 ```tsx
 import React from 'react';
-import { useFetchWithAuth } from '@/utils/fetchWithAuth';
+import { useFetchWithAuth } from '@/utils/fetch-with-auth';
 
 export default function Demo() {
   const fetchAuth = useFetchWithAuth();
   React.useEffect(() => {
-    fetchAuth('/api/data', { method: 'GET' })
-      .then(res => res.json())
-      .then(data => console.log(data));
+    fetchAuth('/api/products', { method: 'GET' })
+      .then(r => r.json())
+      .then(console.log);
   }, [fetchAuth]);
-  return <div>Loading...</div>;
+  return null;
 }
 ```
 
-Once running, the app will be available at [http://localhost:3000](http://localhost:3000)
+## Theme & Preferences
 
----
+- Initial wiring (`src/app/layout.tsx`):
+  - Server-side `getPreference('theme_mode'|'theme_preset')` reads from cookies
+  - Wraps `PreferencesStoreProvider`; use `usePreferencesStore` client-side
+- Add a new theme:
+  1) Add a `*.css` in `src/styles/presets/` with `label:`, `value:` comments and `--primary` for light/dark
+  2) Run `npm run generate:presets` to update `src/types/preferences/theme.ts`
+  3) UI pickers will automatically include the new preset
+- Commit automation (`.husky/pre-commit`):
+  - Generates presets and runs Prettier; then executes `lint-staged`
 
-> [!IMPORTANT]  
-> This project is frequently updated. If you’re working from a fork or a previously cloned copy, check for the latest changes before syncing. Some updates may include breaking changes.
+## Sidebar & RBAC
 
----
+- Config file: `src/navigation/sidebar/sidebar-items.ts`
+  - `NavGroup` → `items: NavMainItem[]`
+  - Control visibility using `roles: Role[]` (see `src/types/auth.ts`)
+  - `filterMenuByRole(menuGroups, userRole)` filters items per current user role
+- Dev mode: when `IS_DEV` is `true`, demo menus (Default/CRM/Finance) are appended
 
-Feel free to open issues, feature requests, or start a discussion if you'd like to contribute or suggest improvements.
+## Add a Feature Module (Recommended Flow)
 
+1) Create route and page:
 
-**Happy Vibe Coding!**
+```bash
+mkdir -p src/app/\(main\)/dashboard/products/_components
+```
+
+```tsx
+// src/app/(main)/dashboard/products/page.tsx
+export default function ProductsPage() {
+  return (
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold">Products</h1>
+      <p className="text-muted-foreground">Manage your product information</p>
+    </div>
+  );
+}
+```
+
+2) Add sidebar menu: `src/navigation/sidebar/sidebar-items.ts`
+
+```ts
+import { Package } from 'lucide-react';
+
+// Append under the Dashboards group
+{
+  title: 'Products',
+  url: '/dashboard/products',
+  icon: Package,
+  roles: [Role.ADMIN, Role.SUPER_ADMIN],
+}
+```
+
+3) Private components and table utilities: put `schema.ts`, `columns.tsx`, `data-table.tsx` in `_components/`
+
+4) Data access: prefer `fetch-with-auth`; use `proxyParams` if a proxy envelope is required
+
+5) UX and state: `react-hook-form` + `zod` for forms; `zustand` for preferences/light state
+
+## Code Quality
+
+- Lint: `npm run lint` (CI: `npm run lint:ci`)
+- Type check: `npm run typecheck`
+- Formatting: `npm run format` / `npm run format:check`
+- File naming: kebab-case (see `unicorn/filename-case` in `eslint.config.mjs`)
+- React rules: avoid unstable nested components, array index keys; memoize context values, etc.
+- Build speed: `next.config.mjs` skips ESLint/TS during build; run `lint` + `typecheck` in CI or locally before deploying
+
+## Env Vars & Running
+
+- `API_BASE_URL`: backend base (target for `rewrites()`); see root `.env.development`
+- Dev: `npm run dev` → `http://localhost:3456`
+- Build/Run: `npm run build` → `npm run start`
+
+## FAQ
+
+- Menu not visible: ensure you are logged in and the `user.role` has access (`roles` in `sidebar-items.ts`)
+- 401 loop: ensure backend implements `/api/auth/refresh`; or temporarily disable auto-refresh logic
+- API 404: check `API_BASE_URL`; ensure `next.config.mjs` `rewrites()` is applied
+- Middleware not working: ensure `src/middleware.ts` exists and `config.matcher` matches your routes
+- Port mismatch: template scripts use port `3456` (see `package.json` `dev/start`)
+
+## References
+
+- Quick Start: `docs/快速开始.md`
+- Practical Examples: `docs/实战示例.md`
+- Query/Action Bar: `docs/query-action-bar.md`
+- Style & Contribution: `AGENTS.md`
