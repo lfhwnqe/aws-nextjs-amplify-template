@@ -6,12 +6,19 @@ This project is a modern admin template built with Next.js 15, TypeScript, Tailw
 
 > Update app identity in `src/config/app-config.ts` (`APP_CONFIG.name`, `meta.title`, `meta.description`).
 
+## Online Demo
+
+- URL: https://main.d3919bjo2q9c5.amplifyapp.com/
+- Test account: `linuo`
+- Test password: `Ur8Djfm6vtuf9Lc!`
+
 ## Development Environment
 
 - Node.js: recommended `>= 22`; package manager: `npm` or `yarn`
 - Dev server: `npm run dev` at `http://localhost:3456`
 - Env vars: `API_BASE_URL` (global backend proxy target)
-  - Examples: see `.env.development` (pre-filled API Gateway) and `.env.production`
+  - How to set up on first clone: copy `env.example` to `.env.development` and `.env.production`, then edit values
+  - Examples: see `env.example`; in CI/hosting set env vars in the provider console (e.g., Amplify)
 - Scripts:
   - `npm run dev`: start dev server (port `3456`)
   - `npm run build`: build artifacts
@@ -157,9 +164,24 @@ import { Package } from 'lucide-react';
 
 ## Env Vars & Running
 
-- `API_BASE_URL`: backend base (target for `rewrites()`); see root `.env.development`
+- `API_BASE_URL`: backend base (target for `rewrites()`); configure via `.env.development` / `.env.production`
 - Dev: `npm run dev` → `http://localhost:3456`
 - Build/Run: `npm run build` → `npm run start`
+
+### First-time Setup (Env Vars)
+
+- Copy examples:
+  - `cp env.example .env.development`
+  - `cp env.example .env.production`
+- Edit values:
+  - Dev: set `API_BASE_URL` to your dev backend (e.g., API Gateway dev stage like `https://xxxx.execute-api.<region>.amazonaws.com/dev`)
+  - Prod: set `API_BASE_URL` to your prod backend (e.g., `https://xxxx.execute-api.<region>.amazonaws.com/prod` or custom domain)
+- Optional overrides:
+  - Use `.env.local` for developer-specific overrides (git-ignored); Next.js loads `.env.local` last
+- Notes:
+  - `.env.*` files are git-ignored (see `.gitignore`), so they won’t be committed
+  - In hosted environments (e.g., AWS Amplify), set `API_BASE_URL` in the environment variables configuration
+  - After setting envs: `npm ci` then `npm run dev` (port `3456`)
 
 ## FAQ
 
