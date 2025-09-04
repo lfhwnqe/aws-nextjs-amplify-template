@@ -63,29 +63,10 @@ const baseSidebarItems: NavGroup[] = [
       //   icon: LayoutDashboard,
       // },
       {
-        title: "客户管理",
-        url: "/dashboard/customer",
-        icon: LayoutDashboard,
-        roles: [Role.ADMIN, Role.SUPER_ADMIN], // 只有管理员和版主可以访问
-      },
-      {
         title: "产品管理",
         url: "/dashboard/products",
         icon: LayoutDashboard,
         roles: [Role.ADMIN, Role.SUPER_ADMIN], // 只有管理员可以访问
-      },
-      {
-        title: "交易记录",
-        url: "/dashboard/transaction",
-        icon: LayoutDashboard,
-        roles: [Role.ADMIN, Role.SUPER_ADMIN], // 管理员和版主可以访问
-      },
-      {
-        title: "用户订单",
-        url: "/dashboard/user-transaction",
-        icon: LayoutDashboard,
-        roles: [Role.USER], // 管理员和版主可以访问
-        // 不设置 roles，表示所有角色都可以访问
       },
       // {
       //   title: "CRM",
